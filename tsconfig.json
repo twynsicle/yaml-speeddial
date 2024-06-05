@@ -7,6 +7,8 @@
       "~*": ["./*"]
     },
     "types": ["vue"],
-    "baseUrl": "."
-  }
+    "baseUrl": ".",
+    "target": "es6",
+    "module": "esnext"
+  },
 }
