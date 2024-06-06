@@ -1,15 +1,16 @@
 groups:
   - name: github
+    url: https://github.com
     sites:
-      - name: base
-        url: https://github.com
       - name: my reviews
         url: https://github.com
       - name: awaiting review
         url: https://github.com
   - name: aws
+    url: https://aws.amazon.com
     subgroups:
       - name: cloudwatch
+        url: https://aws.amazon.com/cloudwatch/
         sites:
           - name: test
             url: https://aws.amazon.com/cloudwatch/
