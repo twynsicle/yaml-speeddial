@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { defineAsyncComponent } from 'vue';
 import { Storage } from '@plasmohq/storage';
-import { ref, defineEmits, onUnmounted } from 'vue';
+import { ref, defineEmits, onUnmounted, computed } from 'vue';
+import { defaultConfig } from '../config/default';
 
 // Lazy load CodeMirror component
 const Codemirror = defineAsyncComponent({
@@ -33,25 +34,36 @@ let storageCache: string | null = null;
 // Load initial configuration with caching
 const loadInitialConfig = async () => {
   try {
+    storageCache = await storage.get('config');
     if (!storageCache) {
-      storageCache = await storage.get('config');
-      code.value = storageCache;
+      const initialConfig = defaultConfig;
+      code.value = initialConfig;
+      // Save default config to storage
+      await storage.set('config', initialConfig);
+      storageCache = initialConfig;
     } else {
       code.value = storageCache;
     }
   } catch (error) {
     console.error('Failed to load configuration:', error);
+    code.value = defaultConfig;
   }
 };
 
 // Initialize component
-await Promise.all([
-  loadCodeMirrorDeps(),
-  loadInitialConfig()
-]);
+try {
+  await Promise.all([
+    loadCodeMirrorDeps(),
+    loadInitialConfig()
+  ]);
+} catch (error) {
+  console.error('Component initialization failed:', error);
+}
 
 // Debounced save function
 const debouncedSave = async (newValue: string) => {
+  const debounceDelay = 500;
+
   if (debounceTimer) {
     clearTimeout(debounceTimer);
   }
@@ -61,36 +73,46 @@ const debouncedSave = async (newValue: string) => {
 
   debounceTimer = window.setTimeout(async () => {
     try {
+      const currentConfig = await storage.get('config');
+
       // Only save if the value has actually changed
-      if (newValue !== await storage.get('config')) {
+      if (newValue !== currentConfig) {
         await storage.set('config', newValue);
         emit('configUpdated');
       }
     } catch (error) {
       console.error('Failed to save configuration:', error);
-      // Invalidate cache on error
+      // Invalidate cache on error and try to recover
       storageCache = null;
+      code.value = newValue; // Keep the editor content
     }
-  }, 1000); // Increased to 1000ms for better performance
+  }, debounceDelay);
 };
 
 // Clean up timer on component unmount
 onUnmounted(() => {
   if (debounceTimer) {
     clearTimeout(debounceTimer);
+    debounceTimer = null;
   }
 });
-
-const onChange = async (newValue: string) => {
-  code.value = newValue;
-  await debouncedSave(newValue);
-};
 
 const options = {
   mode: 'text/x-yaml',
   theme: 'dracula',
   tabSize: 2,
   lineNumbers: true,
+  lineWrapping: true,
+  autofocus: true,
+  viewportMargin: Infinity,
+  extraKeys: {
+    'Ctrl-S': (cm) => {
+      if (cm.getValue) {
+        const value = cm.getValue();
+        debouncedSave(value);
+      }
+    }
+  }
 };
 </script>
 
@@ -101,7 +123,7 @@ const options = {
     border
     placeholder="Enter your YAML configuration here..."
     :height="800"
-    @change="onChange"
+    @change="(content) => debouncedSave(content)"
   />
 </template>
 

@@ -4,6 +4,7 @@ import { parse } from 'yaml';
 import { ref, onMounted, computed } from 'vue';
 import Editor from './Editor.vue';
 import ThemeToggle from './ThemeToggle.vue';
+import { defaultConfig } from '../config/default';
 
 // Initialize storage with proper configuration
 const storage = new Storage({
@@ -94,10 +95,14 @@ const toggleSettings = () => {
 
 const handleConfigUpdate = async () => {
   const newConfig = await storage.get('config');
-  if (newConfig !== config.value) {
+  if (!newConfig) {
+    // Use default config if none exists
+    config.value = defaultConfig;
+    await storage.set('config', defaultConfig);
+  } else if (newConfig !== config.value) {
     config.value = newConfig;
-    parsedConfig.value = getParsedConfig.value;
   }
+  parsedConfig.value = getParsedConfig.value;
 };
 </script>
 
@@ -110,15 +115,15 @@ const handleConfigUpdate = async () => {
 
     <div class="group" v-for="group in parsedConfig?.groups" :key="group.name">
       <section v-if="group.subgroups != null">
-        <h2 v-once v-if="group.url != null">
+        <h2 v-if="group.url != null">
           <a :href="group.url">{{ group.name }}</a>
         </h2>
-        <h2 v-once v-else>{{ group.name }}</h2>
+        <h2 v-else>{{ group.name }}</h2>
         <div class="subgroup" v-for="subgroup in group.subgroups">
-          <h3 v-once v-if="subgroup.url != null">
+          <h3 v-if="subgroup.url != null">
             <a :href="subgroup.url">{{ subgroup.name }}</a>
           </h3>
-          <h3 v-once v-else>{{ subgroup.name }}</h3>
+          <h3 v-else>{{ subgroup.name }}</h3>
           <div class="sites">
             <div class="site" v-for="site in subgroup.sites">
               <a class="link" :href="site.url">{{ site.name }}</a>
@@ -151,9 +156,8 @@ const handleConfigUpdate = async () => {
 
 <style scoped lang="scss">
 .speeddial {
-  width: 100%;
   padding: 150px 10% 0 10%;
-  position: relative;
+  margin-left: 20%;
   background: transparent;
 
   .settings-button {
@@ -176,16 +180,19 @@ const handleConfigUpdate = async () => {
     background: var(--modal-content-bg);
     padding: 20px;
     border-radius: 8px;
-    min-width: 60vw;
-    width: 60vw;
-    overflow-y: visible;
-    position: absolute;
-    top: 30%;
-    left: 20%;
-    transform: translate(-30%, -20%);
+    width: 70vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: fixed;
+    top: 50vh;
+    left: 50vw;
+    transform: translate(-50%, -50%);
     z-index: 1000;
     border: 2px solid var(--button-color);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin: 0;
+    box-sizing: border-box;
   }
 
 
@@ -216,6 +223,7 @@ const handleConfigUpdate = async () => {
     color: var(--heading-color);
     a {
       color: var(--heading-color);
+      text-decoration: none;
 
       &:hover {
         text-decoration: underline;
@@ -267,6 +275,7 @@ const handleConfigUpdate = async () => {
         color: var(--site-color);
         font-size: 20px;
         padding: 0 10px;
+        text-decoration: none;
 
         &:hover {
           text-decoration: underline;
@@ -310,6 +319,7 @@ const handleConfigUpdate = async () => {
       color: var(--site-color);
       font-size: 20px;
       padding: 0 10px;
+      text-decoration: none;
 
       &:hover {
         text-decoration: underline;
