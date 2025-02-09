@@ -6,7 +6,7 @@
   "author": "lemon",
   "scripts": {
     "dev": "plasmo dev --target=edge-mv3",
-    "build": "plasmo build",
+    "build": "plasmo build --target=edge-mv3",
     "package": "plasmo package"
   },
   "dependencies": {

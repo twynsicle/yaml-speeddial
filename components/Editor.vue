@@ -4,7 +4,9 @@ import 'codemirror/theme/dracula.css';
 import 'codemirror/mode/yaml/yaml.js';
 import 'codemirror/addon/display/placeholder.js';
 import { Storage } from '@plasmohq/storage';
-import { ref } from 'vue';
+import { ref, defineEmits } from 'vue';
+
+const emit = defineEmits(['configUpdated']);
 
 const storage = new Storage({
   area: 'local',
@@ -18,9 +20,9 @@ if (loadedCode) {
   code.value = loadedCode;
 }
 
-const onChange = (newValue: string) => {
-  storage.set('config', newValue);
-  console.log('updating config');
+const onChange = async (newValue: string) => {
+  await storage.set('config', newValue);
+  emit('configUpdated');
 };
 
 const options = {
@@ -36,10 +38,15 @@ const options = {
     v-model:value="code"
     :options="options"
     border
-    placeholder="test placeholder"
-    :height="1000"
+    placeholder="Enter your YAML configuration here..."
+    :height="800"
     @change="onChange"
   />
 </template>
 
-<style scoped lang="scss"></style>
+<style lang="scss">
+.CodeMirror * {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 16px;
+}
+</style>
