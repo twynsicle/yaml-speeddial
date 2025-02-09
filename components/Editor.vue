@@ -3,6 +3,7 @@ import { defineAsyncComponent } from 'vue';
 import { Storage } from '@plasmohq/storage';
 import { ref, defineEmits, onUnmounted, computed } from 'vue';
 import { defaultConfig } from '../config/default';
+import { parse as yamlParse } from 'yaml';
 
 // Lazy load CodeMirror component
 const Codemirror = defineAsyncComponent({
@@ -28,8 +29,20 @@ const storage = new Storage({
 });
 
 const code = ref(null);
+const validationError = ref<string | null>(null);
 let debounceTimer: number | null = null;
 let storageCache: string | null = null;
+
+const validateYaml = (content: string): boolean => {
+  try {
+    yamlParse(content);
+    validationError.value = null;
+    return true;
+  } catch (error) {
+    validationError.value = error.message;
+    return false;
+  }
+};
 
 // Load initial configuration with caching
 const loadInitialConfig = async () => {
@@ -37,16 +50,25 @@ const loadInitialConfig = async () => {
     storageCache = await storage.get('config');
     if (!storageCache) {
       const initialConfig = defaultConfig;
-      code.value = initialConfig;
-      // Save default config to storage
-      await storage.set('config', initialConfig);
-      storageCache = initialConfig;
+      if (validateYaml(initialConfig)) {
+        code.value = initialConfig;
+        // Save default config to storage
+        await storage.set('config', initialConfig);
+        storageCache = initialConfig;
+      }
     } else {
-      code.value = storageCache;
+      if (validateYaml(storageCache)) {
+        code.value = storageCache;
+      } else {
+        // If stored config is invalid, fallback to default
+        code.value = defaultConfig;
+        validateYaml(defaultConfig);
+      }
     }
   } catch (error) {
     console.error('Failed to load configuration:', error);
     code.value = defaultConfig;
+    validateYaml(defaultConfig);
   }
 };
 
@@ -68,25 +90,27 @@ const debouncedSave = async (newValue: string) => {
     clearTimeout(debounceTimer);
   }
 
-  // Update cache immediately
-  storageCache = newValue;
+  // Only update cache if YAML is valid
+  if (validateYaml(newValue)) {
+    storageCache = newValue;
 
-  debounceTimer = window.setTimeout(async () => {
-    try {
-      const currentConfig = await storage.get('config');
+    debounceTimer = window.setTimeout(async () => {
+      try {
+        const currentConfig = await storage.get('config');
 
-      // Only save if the value has actually changed
-      if (newValue !== currentConfig) {
-        await storage.set('config', newValue);
-        emit('configUpdated');
+        // Only save if the value has actually changed
+        if (newValue !== currentConfig) {
+          await storage.set('config', newValue);
+          emit('configUpdated');
+        }
+      } catch (error) {
+        console.error('Failed to save configuration:', error);
+        // Invalidate cache on error and try to recover
+        storageCache = null;
+        code.value = newValue; // Keep the editor content
       }
-    } catch (error) {
-      console.error('Failed to save configuration:', error);
-      // Invalidate cache on error and try to recover
-      storageCache = null;
-      code.value = newValue; // Keep the editor content
-    }
-  }, debounceDelay);
+    }, debounceDelay);
+  }
 };
 
 // Clean up timer on component unmount
@@ -117,14 +141,22 @@ const options = {
 </script>
 
 <template>
-  <Codemirror
-    v-model:value="code"
-    :options="options"
-    border
-    placeholder="Enter your YAML configuration here..."
-    :height="800"
-    @change="(content) => debouncedSave(content)"
-  />
+  <div class="editor-container">
+    <Codemirror
+      v-model:value="code"
+      :options="options"
+      border
+      placeholder="Enter your YAML configuration here..."
+      :height="800"
+      @change="(content) => {
+        validateYaml(content);
+        debouncedSave(content);
+      }"
+    />
+    <div v-if="validationError" class="validation-error">
+      Invalid YAML: {{ validationError }}
+    </div>
+  </div>
 </template>
 
 <style lang="scss">
@@ -162,8 +194,28 @@ const options = {
   }
 
   /* Optimize gutter rendering */
-  .CodeMirror-gutter {
-    contain: strict;
+    .CodeMirror-gutter {
+      contain: strict;
+    }
   }
-}
+
+  .editor-container {
+    position: relative;
+    width: 100%;
+  }
+
+  .validation-error {
+    position: fixed;
+    bottom: 16px;
+    left: 16px;
+    right: 16px;
+    padding: 12px 16px;
+    background-color: #ff5555;
+    color: white;
+    font-size: 14px;
+    z-index: 1000;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: opacity 0.3s ease;
+  }
 </style>

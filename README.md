@@ -10,9 +10,10 @@ YAML Speed Dial is built using modern web technologies to provide a clean and ef
 
 - Hierarchical organization of bookmarks (groups, subgroups, sites)
 - YAML-based configuration for easy maintenance
+- Real-time YAML validation with error feedback
 - Vue.js-powered interface
 - Built with Plasmo framework for cross-browser compatibility
-- CodeMirror integration for YAML editing
+- CodeMirror integration for YAML editing with syntax highlighting
 
 ## Technologies Used
 
@@ -68,3 +69,13 @@ The project uses the following structure:
 - `components/` - Vue components
 - `sites.yaml` - Main configuration file
 - `newtab.vue` - New tab page implementation
+
+### Editor Features
+
+The built-in YAML editor provides:
+- Syntax highlighting for YAML
+- Real-time validation of YAML syntax
+- Immediate error feedback for invalid configurations
+- Auto-indentation and formatting
+- Configuration persistence with validation
+- Prevents saving of invalid YAML configurations
