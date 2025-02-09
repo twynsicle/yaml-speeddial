@@ -3,6 +3,7 @@ import { Storage } from '@plasmohq/storage';
 import { parse } from 'yaml';
 import { ref, onMounted } from 'vue';
 import Editor from './Editor.vue';
+import ThemeToggle from './ThemeToggle.vue';
 
 // Add Font Awesome
 const loadFontAwesome = () => {
@@ -51,6 +52,7 @@ const handleConfigUpdate = async () => {
 
 <template>
   <div class="speeddial">
+    <ThemeToggle />
     <button class="settings-button" @click="toggleSettings" title="Settings">
       <i class="fas fa-cog"></i>
     </button>
@@ -66,8 +68,10 @@ const handleConfigUpdate = async () => {
             <a :href="subgroup.url">{{ subgroup.name }}</a>
           </h3>
           <h3 v-else>{{ subgroup.name }}</h3>
-          <div class="site" v-for="site in subgroup.sites">
-            <a class="link" :href="site.url">{{ site.name }}</a>
+          <div class="sites">
+            <div class="site" v-for="site in subgroup.sites">
+              <a class="link" :href="site.url">{{ site.name }}</a>
+            </div>
           </div>
         </div>
       </section>
@@ -76,8 +80,10 @@ const handleConfigUpdate = async () => {
           <a :href="group.url">{{ group.name }}</a>
         </h2>
         <h2 v-else>{{ group.name }}</h2>
-        <div class="site" v-for="site in group.sites">
-          <a class="link" :href="site.url">{{ site.name }}</a>
+        <div class="sites">
+          <div class="site" v-for="site in group.sites">
+            <a class="link" :href="site.url">{{ site.name }}</a>
+          </div>
         </div>
       </section>
     </div>
@@ -97,8 +103,9 @@ const handleConfigUpdate = async () => {
 <style scoped lang="scss">
 .speeddial {
   width: 100%;
-  margin: 150px 10% 0 10%;
+  padding: 150px 10% 0 10%;
   position: relative;
+  background: transparent;
 
   .settings-button {
     position: fixed;
@@ -106,11 +113,10 @@ const handleConfigUpdate = async () => {
     right: 20px;
     background: transparent;
     border: none;
-    color: #666;
+    color: var(--button-color);
     font-size: 24px;
     cursor: pointer;
-    opacity: 0.9;
-    transition: opacity 0.3s ease;
+    opacity: 0.6;
 
     &:hover {
       opacity: 1;
@@ -123,7 +129,7 @@ const handleConfigUpdate = async () => {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.75);
+    background: var(--modal-overlay-bg);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -131,7 +137,7 @@ const handleConfigUpdate = async () => {
   }
 
   .modal-content {
-    background: #1e1e1e;
+    background: var(--modal-content-bg);
     padding: 20px;
     border-radius: 8px;
     width: 80%;
@@ -149,8 +155,8 @@ const handleConfigUpdate = async () => {
   }
 
   .save-button {
-    background: #333;
-    color: #fff;
+    background: var(--button-bg);
+    color: var(--button-text);
     border: none;
     padding: 8px 16px;
     border-radius: 4px;
@@ -159,16 +165,20 @@ const handleConfigUpdate = async () => {
     min-width: 100px;
 
     &:hover {
-      background: #444;
+      background: var(--button-bg-hover);
     }
   }
 
   h2,
   h3 {
     font-family: 'Montserrat', sans-serif;
-    color: #b6b6b6;
+    color: var(--heading-color);
     a {
-      color: #b6b6b6;
+      color: var(--heading-color);
+
+      &:hover {
+        text-decoration: underline;
+      }
     }
   }
 
@@ -187,7 +197,7 @@ const handleConfigUpdate = async () => {
 
   h2 {
     font-size: 30px;
-    margin: 10px 0;
+    margin: 0 0;
     border: none;
   }
 
@@ -195,28 +205,75 @@ const handleConfigUpdate = async () => {
     display: flex;
     flex-direction: row;
     align-items: center;
+
+    h3 {
+      width: 200px;
+      min-width: 200px;
+      font-size: 20px;
+      margin: 5px 0;
+      padding-right: 15px;
+      flex-shrink: 0;
+    }
+
+    .sites {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: center;
+      width: calc(100% - 200px); /* Subtract the width of h3 to ensure proper alignment */
+
+      .link {
+        color: var(--site-color);
+        font-size: 20px;
+        padding: 0 10px;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+    }
   }
 
-  h3 {
-    width: 200px;
-    font-size: 20px;
-    margin: 5px 0;
+  .subgroup:not(:first-child) {
+    margin-top: 8px;
   }
 
-  .link {
-    font-size: 20px;
-    padding: 0 10px;
-    color: #999;
+  .subgroup:not(:last-child) {
+    margin-bottom:8px;
   }
 
   .direct-children {
+    align-items: center;
+
     h2 {
       width: 200px;
+      min-width: 200px;
+      padding-right: 15px;
+      flex-shrink: 0;
+      margin: 5px 0;
     }
 
     display: flex;
     flex-direction: row;
+  }
+
+  .sites {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
     align-items: center;
+    width: calc(100% - 200px); /* Subtract the width of h3 to ensure proper alignment */
+
+
+    .link {
+      color: var(--site-color);
+      font-size: 20px;
+      padding: 0 10px;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
   }
 }
 </style>
