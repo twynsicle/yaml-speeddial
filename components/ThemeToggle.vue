@@ -41,7 +41,7 @@ const toggleTheme = async () => {
 
 <style scoped lang="scss">
 .theme-toggle {
-  position: fixed;
+  position: absolute;
   top: 20px;
   right: 60px;
   background: transparent;

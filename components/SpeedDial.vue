@@ -1,22 +1,43 @@
 <script setup lang="ts">
 import { Storage } from '@plasmohq/storage';
 import { parse } from 'yaml';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import Editor from './Editor.vue';
 import ThemeToggle from './ThemeToggle.vue';
 
-// Add Font Awesome
-const loadFontAwesome = () => {
-  const link = document.createElement('link');
-  link.rel = 'stylesheet';
-  link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css';
-  document.head.appendChild(link);
+// Efficient Font Awesome loading with preconnect and async loading
+const setupFontAwesome = () => {
+  // Add preconnect for faster CDN connection
+  const preconnect = document.createElement('link');
+  preconnect.rel = 'preconnect';
+  preconnect.href = 'https://cdnjs.cloudflare.com';
+  document.head.appendChild(preconnect);
+
+  // Add DNS prefetch as fallback
+  const dnsPrefetch = document.createElement('link');
+  dnsPrefetch.rel = 'dns-prefetch';
+  dnsPrefetch.href = 'https://cdnjs.cloudflare.com';
+  document.head.appendChild(dnsPrefetch);
+
+  // Preload Font Awesome with high priority
+  const preload = document.createElement('link');
+  preload.rel = 'preload';
+  preload.as = 'style';
+  preload.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css';
+  document.head.appendChild(preload);
+
+  // Load Font Awesome stylesheet asynchronously
+  const stylesheet = document.createElement('link');
+  stylesheet.rel = 'stylesheet';
+  stylesheet.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css';
+  stylesheet.media = 'print';
+  stylesheet.onload = () => {
+    stylesheet.media = 'all';
+  };
+  document.head.appendChild(stylesheet);
 };
 
-onMounted(() => {
-  loadFontAwesome();
-});
-
+// Cache storage instance
 const storage = new Storage({
   area: 'local',
 });
@@ -24,8 +45,41 @@ const storage = new Storage({
 const showSettings = ref(false);
 const config = ref(null);
 const parsedConfig = ref(null);
+const configCache = new Map();
+
+// Computed property for parsed configuration with caching
+// Memoized YAML parsing with error handling and cache size limit
+const MAX_CACHE_SIZE = 10;
+const getParsedConfig = computed(() => {
+  if (!config.value) return null;
+
+  const cacheKey = config.value;
+  if (configCache.has(cacheKey)) {
+    return configCache.get(cacheKey);
+  }
+
+  try {
+    const parsed = parse(cacheKey);
+
+    // Implement LRU-like cache clearing
+    if (configCache.size >= MAX_CACHE_SIZE) {
+      const firstKey = configCache.keys().next().value;
+      configCache.delete(firstKey);
+    }
+
+    configCache.set(cacheKey, parsed);
+    return parsed;
+  } catch (error) {
+    console.error('Failed to parse YAML:', error);
+    return null;
+  }
+});
 
 onMounted(async () => {
+  // Setup Font Awesome loading
+  setupFontAwesome();
+
+  // Load initial configuration
   await handleConfigUpdate();
 });
 
@@ -38,15 +92,11 @@ const toggleSettings = () => {
 };
 
 const handleConfigUpdate = async () => {
-  console.log('config update')
-  config.value = await storage.get('config');
-  try {
-    parsedConfig.value = config.value != null ? await parse(config.value) : null;
-  } catch {
-    parsedConfig.value = null;
+  const newConfig = await storage.get('config');
+  if (newConfig !== config.value) {
+    config.value = newConfig;
+    parsedConfig.value = getParsedConfig.value;
   }
-
-  console.log(parsedConfig.value)
 };
 </script>
 
@@ -57,17 +107,17 @@ const handleConfigUpdate = async () => {
       <i class="fas fa-cog"></i>
     </button>
 
-    <div class="group" v-for="group in parsedConfig.groups" v-if="parsedConfig != null && parsedConfig.groups != null">
+    <div class="group" v-for="group in parsedConfig?.groups" :key="group.name">
       <section v-if="group.subgroups != null">
-        <h2 v-if="group.url != null">
+        <h2 v-once v-if="group.url != null">
           <a :href="group.url">{{ group.name }}</a>
         </h2>
-        <h2 v-else>{{ group.name }}</h2>
+        <h2 v-once v-else>{{ group.name }}</h2>
         <div class="subgroup" v-for="subgroup in group.subgroups">
-          <h3 v-if="subgroup.url != null">
+          <h3 v-once v-if="subgroup.url != null">
             <a :href="subgroup.url">{{ subgroup.name }}</a>
           </h3>
-          <h3 v-else>{{ subgroup.name }}</h3>
+          <h3 v-once v-else>{{ subgroup.name }}</h3>
           <div class="sites">
             <div class="site" v-for="site in subgroup.sites">
               <a class="link" :href="site.url">{{ site.name }}</a>
@@ -108,7 +158,7 @@ const handleConfigUpdate = async () => {
   background: transparent;
 
   .settings-button {
-    position: fixed;
+    position: absolute;
     top: 20px;
     right: 20px;
     background: transparent;
@@ -124,7 +174,7 @@ const handleConfigUpdate = async () => {
   }
 
   .modal-overlay {
-    position: fixed;
+    position: absolute;
     top: 0;
     left: 0;
     width: 100%;
