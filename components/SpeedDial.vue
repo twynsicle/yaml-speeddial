@@ -4,6 +4,7 @@ import { parse } from 'yaml';
 import { ref, onMounted, computed } from 'vue';
 import Editor from './Editor.vue';
 import ThemeToggle from './ThemeToggle.vue';
+import IconButton from './IconButton.vue';
 import { defaultConfig } from '../config/default';
 
 // Initialize storage with proper configuration
@@ -109,9 +110,12 @@ const handleConfigUpdate = async () => {
 <template>
   <div class="speeddial">
     <ThemeToggle />
-    <button class="settings-button" @click="toggleSettings" title="Settings">
-      <i class="fas fa-cog"></i>
-    </button>
+    <IconButton 
+      icon="fa-cog"
+      title="Settings"
+      :right="20"
+      @click="toggleSettings"
+    />
 
     <div class="group" v-for="group in parsedConfig?.groups" :key="group.name">
       <section v-if="group.subgroups != null">
@@ -160,21 +164,6 @@ const handleConfigUpdate = async () => {
   margin-left: 20%;
   background: transparent;
 
-  .settings-button {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    background: transparent;
-    border: none;
-    color: var(--button-color);
-    font-size: 24px;
-    cursor: pointer;
-    opacity: 0.6;
-
-    &:hover {
-      opacity: 1;
-    }
-  }
 
   .modal-content {
     background: var(--modal-content-bg);

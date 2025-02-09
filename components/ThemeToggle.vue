@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, computed } from 'vue';
 import { Storage } from '@plasmohq/storage';
+import IconButton from './IconButton.vue';
 
 const storage = new Storage({ area: 'local' });
 const currentTheme = ref('system');
@@ -28,34 +29,18 @@ const toggleTheme = async () => {
 
   document.documentElement.setAttribute('data-theme', currentTheme.value);
 };
+
+// Compute the current icon based on theme
+const themeIcon = computed(() => 
+  currentTheme.value === 'light' ? 'fa-sun' : 'fa-moon'
+);
 </script>
 
 <template>
-  <button class="theme-toggle" @click="toggleTheme" :title="'Theme: ' + currentTheme">
-    <i class="fas" :class="{
-      'fa-sun': currentTheme === 'light',
-      'fa-moon': currentTheme === 'dark'
-    }"></i>
-  </button>
+  <IconButton
+    :icon="themeIcon"
+    :title="'Theme: ' + currentTheme"
+    :right="60"
+    @click="toggleTheme"
+  />
 </template>
-
-<style scoped lang="scss">
-.theme-toggle {
-  position: absolute;
-  top: 20px;
-  right: 60px;
-  background: transparent;
-  border: none;
-  color: var(--button-color);
-  font-size: 24px;
-  cursor: pointer;
-  opacity: 0.6;
-  transition: opacity 0.3s ease;
-
-  &:hover {
-    opacity: 1;
-    background: transparent;
-    color: var(--button-color);
-  }
-}
-</style>
