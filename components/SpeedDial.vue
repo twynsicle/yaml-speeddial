@@ -5,6 +5,12 @@ import { ref, onMounted, computed } from 'vue';
 import Editor from './Editor.vue';
 import ThemeToggle from './ThemeToggle.vue';
 
+// Initialize storage with proper configuration
+const storage = new Storage({
+  area: "local",
+  allCopied: true
+});
+
 // Efficient Font Awesome loading with preconnect and async loading
 const setupFontAwesome = () => {
   // Add preconnect for faster CDN connection
@@ -36,11 +42,6 @@ const setupFontAwesome = () => {
   };
   document.head.appendChild(stylesheet);
 };
-
-// Cache storage instance
-const storage = new Storage({
-  area: 'local',
-});
 
 const showSettings = ref(false);
 const config = ref(null);
@@ -139,12 +140,10 @@ const handleConfigUpdate = async () => {
     </div>
 
     <!-- Settings Modal -->
-    <div v-if="showSettings" class="modal-overlay" @click="toggleSettings">
-      <div class="modal-content" @click.stop>
-        <Editor @config-updated="handleConfigUpdate" />
-        <div class="button-container">
-          <button class="save-button" @click="toggleSettings">Save</button>
-        </div>
+    <div v-if="showSettings" class="modal-content">
+      <Editor @config-updated="handleConfigUpdate" />
+      <div class="button-container">
+        <button class="save-button" @click="toggleSettings">Save</button>
       </div>
     </div>
   </div>
@@ -173,30 +172,22 @@ const handleConfigUpdate = async () => {
     }
   }
 
-  .modal-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: var(--modal-overlay-bg);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-  }
-
   .modal-content {
     background: var(--modal-content-bg);
     padding: 20px;
     border-radius: 8px;
-    width: 80%;
-    max-width: 1200px;
-    //min-height: 80vh;
-    //max-height: 80vh;
+    min-width: 60vw;
+    width: 60vw;
     overflow-y: visible;
-    position: relative;
+    position: absolute;
+    top: 30%;
+    left: 20%;
+    transform: translate(-30%, -20%);
+    z-index: 1000;
+    border: 2px solid var(--button-color);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   }
+
 
   .button-container {
     display: flex;

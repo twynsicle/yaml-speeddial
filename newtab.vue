@@ -63,7 +63,6 @@ onMounted(initializeTheme);
   --bg-color: #1a1a1a;
   --heading-color: #b6b6b6;
   --site-color: #999999;
-  --modal-overlay-bg: rgba(0, 0, 0, 0.7);
   --modal-content-bg: #2a2a2a;
   --button-color: #666666;
   --button-bg: #333333;
@@ -86,7 +85,6 @@ html {
     --bg-color: #ffffff;
     --heading-color: #2c3e50;
     --site-color: #3498db;
-    --modal-overlay-bg: rgba(0, 0, 0, 0.5);
     --modal-content-bg: #ffffff;
     --button-color: #3498db;
     --button-bg: #3498db;
