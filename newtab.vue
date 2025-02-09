@@ -25,6 +25,18 @@ onMounted(async () => {
 </template>
 
 <style lang="scss">
+:root {
+  --bg-color: #1a1a1a;
+  --heading-color: #b6b6b6;
+  --site-color: #999999;
+  --modal-overlay-bg: rgba(0, 0, 0, 0.7);
+  --modal-content-bg: #2a2a2a;
+  --button-color: #666666;
+  --button-bg: #333333;
+  --button-bg-hover: #444444;
+  --button-text: #ffffff;
+}
+
 html {
   &[data-theme="light"] {
     --bg-color: #ffffff;

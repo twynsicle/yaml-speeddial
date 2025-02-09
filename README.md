@@ -1,33 +1,70 @@
-This is a [Plasmo extension](https://docs.plasmo.com/) project bootstrapped with [`plasmo init`](https://www.npmjs.com/package/plasmo).
+# YAML Speed Dial Browser Extension
 
-## Getting Started
+A browser extension that provides a customizable speed dial page using YAML configuration. This extension allows developers to organize their frequently accessed URLs in a hierarchical structure, making it easy to navigate between different environments and services.
 
-First, run the development server:
+## Overview
 
-```bash
-pnpm dev
-# or
-npm run dev
+YAML Speed Dial is built using modern web technologies to provide a clean and efficient way to organize and access frequently used URLs. It's particularly useful for developers who need quick access to various development environments, services, and tools.
+
+### Key Features
+
+- Hierarchical organization of bookmarks (groups, subgroups, sites)
+- YAML-based configuration for easy maintenance
+- Vue.js-powered interface
+- Built with Plasmo framework for cross-browser compatibility
+- CodeMirror integration for YAML editing
+
+## Technologies Used
+
+- Plasmo (v0.86.3) - Browser extension framework
+- Vue.js (v3.4.15) - UI framework
+- YAML - Configuration format
+- CodeMirror - YAML editor integration
+- TypeScript - Type-safe development
+
+## Configuration Structure
+
+The speed dial is configured using a YAML file with the following structure:
+
+```yaml
+groups:
+  - name: group_name
+    url: group_url (optional)
+    sites:
+      - name: site_name
+        url: site_url
+    subgroups:
+      - name: subgroup_name
+        sites:
+          - name: site_name
+            url: site_url
 ```
 
-Open your browser and load the appropriate development build. For example, if you are developing for the chrome browser, using manifest v3, use: `build/chrome-mv3-dev`.
+### Configuration Elements
 
-You can start editing the popup by modifying `popup.tsx`. It should auto-update as you make changes. To add an options page, simply add a `options.tsx` file to the root of the project, with a react component default exported. Likewise to add a content page, add a `content.ts` file to the root of the project, importing some module and do some logic, then reload the extension on your browser.
+- `groups`: Top-level organization units
+- `subgroups`: Nested organization units within groups
+- `sites`: Individual bookmarks
+- `name`: Display name for the group/site
+- `url`: Target URL for the bookmark
 
-For further guidance, [visit our Documentation](https://docs.plasmo.com/)
+## Installation
 
-## Making production build
+1. Clone the repository
+2. Install dependencies: `yarn install`
+3. Development: `yarn dev`
+4. Build: `yarn build`
+5. Package: `yarn package`
 
-Run the following:
+## Usage
 
-```bash
-pnpm build
-# or
-npm run build
-```
+1. Install the extension in your browser
+2. Configure your bookmarks in the `sites.yaml` file
+3. Access your speed dial page from the new tab page
 
-This should create a production bundle for your extension, ready to be zipped and published to the stores.
+## Development
 
-## Submit to the webstores
-
-The easiest way to deploy your Plasmo extension is to use the built-in [bpp](https://bpp.browser.market) GitHub action. Prior to using this action however, make sure to build your extension and upload the first version to the store to establish the basic credentials. Then, simply follow [this setup instruction](https://docs.plasmo.com/framework/workflows/submit) and you should be on your way for automated submission!
+The project uses the following structure:
+- `components/` - Vue components
+- `sites.yaml` - Main configuration file
+- `newtab.vue` - New tab page implementation
