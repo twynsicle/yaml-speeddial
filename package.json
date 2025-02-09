@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "plasmo dev --target=edge-mv3",
     "build": "plasmo build --target=edge-mv3",
+    "build:chrome": "plasmo build --target=chrome-mv3",
     "package": "plasmo package"
   },
   "dependencies": {
@@ -24,10 +25,5 @@
     "@types/node": "20.11.5",
     "prettier": "3.2.4",
     "typescript": "5.3.3"
-  },
-  "manifest": {
-    "host_permissions": [
-      "https://*/*"
-    ]
   }
 }
